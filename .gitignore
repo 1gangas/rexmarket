@@ -1,0 +1,205 @@
+# ==============================================================================
+# REXMARKET - .gitignore EXHAUSTIVO & SEGURO (DevOps Standard)
+# ==============================================================================
+
+# ==============================================================================
+# 1. ARCHIVOS DE ENTORNO Y SECRETOS (CRÍTICO)
+# ==============================================================================
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.json
+*.env.yaml
+*.env.yml
+
+# Permitir explícitamente ejemplos y plantillas de configuración
+!.env.example
+!.env.template
+!.env.sample
+!.env.dist
+
+# ==============================================================================
+# 2. CREDENCIALES DE AWS, CLOUD & INFRAESTRUCTURA (CRÍTICO)
+# ==============================================================================
+# Carpetas y archivos de configuración de AWS CLI y SDK
+.aws/
+aws/credentials
+aws/config
+*aws_credentials*
+*aws_config*
+
+# Archivos de credenciales de proveedores cloud (GCP, Azure, AWS)
+credentials.json
+client_secret*.json
+service-account*.json
+*.pem
+*.key
+*.pkcs12
+*.pfx
+*.p12
+*.crt
+*.cer
+*.der
+
+# Claves SSH privadas y públicas
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+id_ecdsa
+id_ecdsa.pub
+known_hosts
+
+# Secretos, tokens y contraseñas en texto plano
+secrets/
+private/
+*token*.txt
+*token*.json
+*token*.yaml
+*token*.yml
+*password*.txt
+*password*.json
+*secret*.txt
+*secret*.json
+*secret*.yaml
+*secret*.yml
+auth_token*
+jwt_secret*
+
+# Serverless Framework / AWS SAM / AWS CDK
+.serverless/
+.aws-sam/
+cdk.out/
+cdk.context.json
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform/
+.terraform.lock.hcl
+
+# ==============================================================================
+# 3. NODE.JS & REACT FRONTEND / BACKEND
+# ==============================================================================
+node_modules/
+jspm_packages/
+
+# Logs de gestores de paquetes y runtime
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Builds y artefactos de compilación
+dist/
+build/
+out/
+.next/
+.nuxt/
+.vite/
+.parcel-cache/
+.turbo/
+
+# Reportes de cobertura y testing
+coverage/
+.nyc_output/
+
+# Cachés de linters y formato
+.eslintcache
+.stylelintcache
+.prettiercache
+
+# ==============================================================================
+# 4. PYTHON & DJANGO (BACKEND REXMARKET)
+# ==============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Archivos de base de datos local y volcados
+*.sqlite3
+*.sqlite3-journal
+*.db
+*.dump
+*.sql
+*.sql.gz
+
+# Archivos multimedia subidos por usuarios (ej. imágenes de productos)
+productos/productos/
+media/
+staticfiles/
+
+# Celery & background workers
+celerybeat-schedule
+celerybeat.pid
+
+# ==============================================================================
+# 5. LOGS Y DIAGNÓSTICO GENERAL
+# ==============================================================================
+*.log
+logs/
+log/
+*.log.*
+*.dmp
+*.dump
+*.stackdump
+
+# ==============================================================================
+# 6. EDITORES, IDEs Y SISTEMA OPERATIVO
+# ==============================================================================
+# JetBrains (PyCharm, WebStorm, IntelliJ)
+.idea/
+
+# VS Code (ignora el workspace general, pero preserva configuraciones clave si se desean)
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Archivos de Sistema Operativo (Windows & macOS)
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+ehthumbs.db
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Archivos temporales y backups de editores
+*.bak
+*.swp
+*.swo
+*~
+*.tmp
+*.temp
+
+# ==============================================================================
+# 7. DOCUMENTOS TEMPORALES Y ARCHIVOS COMPRIMIDOS
+# ==============================================================================
+~$*.docx
+~$*.xlsx
+~$*.pptx
+*.zip
+*.tar.gz
+*.rar
+*.7z
