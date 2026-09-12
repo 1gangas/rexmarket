@@ -1,0 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --rex-orange: rgb(255, 150, 0);
+    --rex-orange-dark: rgb(220, 130, 0);
+    --rex-orange-light: rgba(255, 150, 0, 0.1);
+}
+
+.login-body {
+    font-family: 'Mukta', sans-serif;
+    background-color: #f4f6f9;
+    background-image: radial-gradient(#e2e6ea 1px, transparent 1px);
+    background-size: 20px 20px;
+    overflow-x: hidden;
+}
+
+/* --- ANIMACIONES KEYFRAMES --- */
+@keyframes slideUpFade {
+    0% { opacity: 0; transform: translateY(40px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes floatElement {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+@keyframes pulseShape {
+    0% { transform: scale(1) rotate(0deg); opacity: 0.1; }
+    50% { transform: scale(1.1) rotate(180deg); opacity: 0.15; }
+    100% { transform: scale(1) rotate(360deg); opacity: 0.1; }
+}
+
+/* --- APLICACIÓN DE ANIMACIONES --- */
+.animate-slide-up {
+    animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade-in {
+    animation: fadeIn 1s ease-out forwards;
+}
+
+.floating-element {
+    animation: floatElement 4s ease-in-out infinite;
+}
+
+/* Retrasos escalonados para que los elementos aparezcan en cascada */
+.animate-stagger-1 { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards; }
+.animate-stagger-2 { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards; }
+.animate-stagger-3 { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards; }
+.animate-stagger-4 { opacity: 0; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.4s forwards; }
+
+/* Tarjeta principal */
+.login-card {
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+}
+
+/* Panel Izquierdo (Branding) */
+.brand-panel {
+    background: linear-gradient(135deg, var(--rex-orange) 0%, #ff5e00 100%);
+    overflow: hidden;
+}
+
+.brand-panel .overlay {
+    background: url('https://www.transparenttextures.com/patterns/cubes.png');
+    opacity: 0.05;
+    pointer-events: none;
+}
+
+.icon-container {
+    width: 90px;
+    height: 90px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Formas geométricas decorativas flotantes */
+.shape {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: none;
+    animation: pulseShape 15s linear infinite;
+}
+
+.shape-1 { width: 300px; height: 300px; top: -100px; left: -100px; }
+.shape-2 { width: 150px; height: 150px; bottom: 50px; right: -50px; animation-duration: 20s; animation-direction: reverse; }
+.shape-3 { width: 80px; height: 80px; top: 40%; left: 10%; animation-duration: 12s; }
+
+/* Inputs y Formularios */
+.group-input {
+    transition: transform 0.3s ease;
+}
+
+.group-input:focus-within {
+    transform: translateX(5px);
+}
+
+.form-floating > .form-control {
+    border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    background-color: #f8fafc;
+    transition: all 0.3s ease;
+}
+
+.form-floating > .form-control:focus {
+    border-color: var(--rex-orange);
+    background-color: white;
+    box-shadow: 0 0 0 4px var(--rex-orange-light);
+}
+
+.form-floating > label {
+    padding-left: 1.25rem;
+}
+
+/* Checkbox personalizado */
+.custom-checkbox .form-check-input:checked {
+    background-color: var(--rex-orange);
+    border-color: var(--rex-orange);
+}
+
+.custom-checkbox .form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem var(--rex-orange-light);
+}
+
+/* Botones principales */
+.login-btn {
+    background: linear-gradient(to right, var(--rex-orange), #ff6a00);
+    border: none;
+    padding: 14px;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.login-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to right, #ff6a00, var(--rex-orange));
+    z-index: -1;
+    transition: opacity 0.4s ease;
+    opacity: 0;
+}
+
+.login-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(255, 150, 0, 0.3) !important;
+}
+
+.login-btn:hover::before {
+    opacity: 1;
+}
+
+.hover-lift {
+    transition: transform 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-3px);
+    color: var(--rex-orange) !important;
+    background-color: white;
+}
+
+/* Links */
+.hover-link {
+    transition: color 0.2s ease;
+}
+
+.hover-link:hover {
+    color: var(--rex-orange-dark) !important;
+    text-decoration: underline !important;
+}
+.text-primary { color: var(--rex-orange) !important; }
+
+/* Botón Volver */
+.btn-back-home {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    background: white;
+    color: #495057;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.btn-back-home:hover {
+    background: var(--rex-orange);
+    color: white;
+    transform: translateX(-5px);
+    box-shadow: 0 6px 20px rgba(255, 150, 0, 0.2);
+}
+
+/* Animación para mover la cuadrícula del fondo */
+@keyframes moveGrid {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+}
+
+.login-body {
+    /* Tu código actual se mantiene, solo le agregas la animación: */
+    animation: moveGrid 15s linear infinite;
+}
