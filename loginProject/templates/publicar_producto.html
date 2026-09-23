@@ -1,0 +1,133 @@
+{% extends "base/base.html" %}
+
+{% block titulo %}
+    Publicar Producto | RexMarket
+{% endblock %}
+
+{% block contenido %}
+<style>
+    /* Estilos para embellecer los campos renderizados por Django automáticamente */
+    .django-form input[type="text"],
+    .django-form input[type="number"],
+    .django-form select,
+    .django-form textarea {
+        display: block;
+        width: 100%;
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+        color: #495057;
+        background-color: #f8f9fa;
+        border: 1px solid #ced4da;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .django-form input:focus,
+    .django-form select:focus,
+    .django-form textarea:focus {
+        background-color: #ffffff;
+        border-color: #ff8c00;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(255, 140, 0, 0.25);
+    }
+
+    /* Diseño especial para el input de tipo archivo (Imagen) */
+    .django-form input[type="file"] {
+        display: block;
+        width: 100%;
+        padding: 0.6rem;
+        font-size: 0.9rem;
+        border: 2px dashed #ff8c00;
+        border-radius: 0.5rem;
+        background-color: #fffaf0;
+        color: #495057;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    
+    .django-form input[type="file"]:hover {
+        background-color: #ffe4b5;
+    }
+    /* Transformar el botón gris por defecto del navegador en un botón naranja moderno */
+    .django-form input[type="file"]::file-selector-button {
+        background-color: #ff8c00;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.3rem;
+        margin-right: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-weight: 600;
+        font-family: inherit;
+    }
+
+    /* Efecto hover para el botón de archivo */
+    .django-form input[type="file"]::file-selector-button:hover {
+        background-color: #e07b00; /* Un naranja un poco más oscuro */
+    }
+</style>
+
+<div class="container py-5">
+    <!-- Centramos el formulario y limitamos su ancho máximo -->
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card shadow-lg border-0 rounded-4">
+                
+                <!-- Cabecera con gradiente naranja -->
+                <div class="card-header text-center text-white py-4 rounded-top-4" style="background: linear-gradient(135deg, #ff8c00, #ff5722);">
+                    <h2 class="mb-1 fw-bold">Publicar Nuevo Producto</h2>
+                    <p class="mb-0 text-white-50 small">Sube los detalles para empezar a vender</p>
+                </div>
+                
+                <div class="card-body p-4 p-md-5 bg-white django-form">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                
+                        {% for field in form %}
+                            <div class="mb-4">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-bold text-secondary mb-2">
+                                    {{ field.label }}
+                                </label>
+                                
+                                {{ field }}
+                                
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted mt-1 d-block">{{ field.help_text }}</small>
+                                {% endif %}
+                                
+                                {% for error in field.errors %}
+                                    <div class="text-danger small mt-1 fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                
+                        <hr class="my-4 text-muted">
+                
+                        <!-- Botones de acción alineados -->
+                        <div class="d-flex gap-3">
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary btn-lg w-50 rounded-3">Cancelar</a>
+                            <button type="submit" class="btn btn-success btn-lg w-50 fw-bold shadow-sm rounded-3">
+                                Publicar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tu script de precio original, protegido con un if para evitar errores en consola
+    const inputPrecio = document.getElementById('id_precio');
+    if (inputPrecio) {
+        inputPrecio.addEventListener('input', function() {
+            let valor = this.value.replace(/[^\d,]/g, '');
+            valor = valor.replace(/,/g, '');
+            valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            this.value = valor;
+        });
+    }
+</script>
+{% endblock %}

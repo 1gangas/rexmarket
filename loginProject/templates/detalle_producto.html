@@ -1,0 +1,308 @@
+{% extends "base/base.html" %}
+
+{% block titulo %}
+    {{ producto.nombre }} | RexMarket
+{% endblock %}
+
+{% block contenido %}
+<style>
+    /* Estilos más limpios y modernos para la imagen y comentarios */
+    .product-image-container {
+        width: 100%;
+        height: 400px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .product-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* Para que la imagen no se recorte ni se deforme */
+        transition: transform 0.3s ease;
+    }
+
+    .product-image-container img:hover {
+        transform: scale(1.05); /* Pequeño zoom al pasar el mouse */
+    }
+
+    .comment-bubble {
+        background-color: #f8f9fa;
+        border-left: 4px solid #ff8c00;
+        border-radius: 8px;
+        padding: 1.2rem;
+        margin-bottom: 1rem;
+        transition: background-color 0.2s ease;
+    }
+    
+    .comment-bubble:hover {
+        background-color: #f1f3f5;
+    }
+</style>
+
+<div class="container py-5">
+    
+    <!-- TARJETA PRINCIPAL DEL PRODUCTO (Dividida en 2 columnas) -->
+    <div class="card shadow-sm border-0 rounded-4 mb-5 bg-white">
+        <div class="card-body p-4 p-lg-5">
+            <div class="row align-items-center">
+                
+                <!-- Columna Izquierda: Imagen -->
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <div class="product-image-container border shadow-sm">
+                        {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                        {% else %}
+                            <div class="text-muted d-flex flex-column align-items-center">
+                                <i class="bi bi-image display-1 mb-2"></i>
+                                <span>Sin imagen</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Detalles y Acciones -->
+                <div class="col-md-6 ps-md-5">
+                    
+                    <!-- Botón de Reportar (Arriba a la derecha, sutil) -->
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-secondary text-uppercase">{{ producto.categoria }}</span>
+                        
+                        {% if user.is_authenticated and producto.vendedor != user %}
+                            <button class="btn btn-sm btn-outline-danger border-0 text-decoration-underline" data-bs-toggle="modal" data-bs-target="#reportarModal-{{ producto.id }}">
+                                <i class="bi bi-flag-fill"></i> Reportar publicación
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    <h1 class="fw-bold mb-3 text-dark">{{ producto.nombre }}</h1>
+                    <h2 class="text-success fw-bolder mb-4">${{ producto.precio }}</h2>
+                    
+                    <p class="text-muted mb-4">{{ producto.descripcion }}</p>
+                    
+                   <div class="d-flex align-items-center mb-4">
+                        <!-- Valoración del Producto -->
+                        <div class="me-3">
+                            <span class="text-warning fs-5">★</span> 
+                            <span class="fw-bold">{{ producto.valoracion_promedio|floatformat:1 }}</span> / 5
+                            <br><small class="text-muted" style="font-size: 0.75rem;">Este producto</small>
+                        </div>
+                        
+                        <!-- Reputación del Vendedor -->
+                        <div class="border-start ps-3">
+                            <div class="text-dark">
+                                <i class="bi bi-person-circle text-primary"></i> Vendedor: <strong>{{ producto.vendedor.first_name }} {{ producto.vendedor.last_name }}</strong>
+                            </div>
+                            <div class="mt-1">
+                                <span class="badge bg-light text-dark border">
+                                    <span class="text-warning">★</span> {{ reputacion_vendedor|floatformat:1 }} Reputación global
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="mb-4">
+
+                    <!-- Acciones principales -->
+                    <div class="d-grid gap-2">
+                        {% if user.is_authenticated and producto.vendedor %}
+                            {% if producto.vendedor != user %}
+                                <a href="{% url 'start_conversation' producto.vendedor.id %}" class="btn btn-primary btn-lg fw-bold">
+                                    <i class="bi bi-chat-dots me-2"></i> Contactar al Vendedor
+                                </a>
+                            {% else %}
+                                {% if producto.es_destacado %}
+                                    <div class="alert alert-warning text-center fw-bold py-2 mb-0">
+                                        <i class="bi bi-star-fill me-1"></i> Destacado hasta {{ producto.destacado_hasta|date:"d M Y" }}
+                                    </div>
+                                {% else %}
+                                    <a href="{% url 'destacar_producto' producto.id %}" class="btn btn-warning btn-lg fw-bold">
+                                        <i class="bi bi-star-fill me-2"></i> Destacar Producto
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'editar_producto' producto.pk %}" class="btn btn-outline-secondary btn-lg">Editar Producto</a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-outline-primary btn-lg">Inicia sesión para contactar</a>
+                        {% endif %}
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN DE COMENTARIOS -->
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <h3 class="fw-bold border-bottom pb-2 mb-4">Comentarios y Valoraciones</h3>
+            
+            <div class="comentarios mb-5">
+                {% for comentario in comentarios %}
+                    <div class="comment-bubble position-relative shadow-sm">
+                        <!-- Botón de reportar comentario -->
+                        {% if user.is_authenticated and comentario.usuario != user %}
+                            <button type="button" class="btn btn-sm btn-link text-danger position-absolute top-0 end-0 mt-2 me-2" data-bs-toggle="modal" data-bs-target="#reportarComentarioModal-{{ comentario.id }}">
+                                <i class="bi bi-flag"></i>
+                            </button>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong class="text-dark">{{ comentario.usuario.first_name }} {{ comentario.usuario.last_name }}</strong>
+                            <small class="text-muted">{{ comentario.fecha_creacion|date:"d M Y" }}</small>
+                        </div>
+                        
+                        <p class="mb-2">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= comentario.valoracion %}
+                                    <span class="text-warning">★</span>
+                                {% else %}
+                                    <span class="text-muted">☆</span>
+                                {% endif %}
+                            {% endfor %}
+                        </p>
+                        <p class="text-secondary mb-2">{{ comentario.comentario }}</p>
+                        
+                        {% if user.is_superuser %}
+                            <form action="{% url 'eliminar_comentario' comentario.id %}" method="post" class="mt-2 text-end">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+
+                    <!-- Modal individual para reportar este comentario -->
+                    <div class="modal fade" id="reportarComentarioModal-{{ comentario.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Reportar Comentario</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <form method="POST" action="{% url 'reportar_comentario' comentario.id %}">
+                                    {% csrf_token %}
+                                    <div class="modal-body">
+                                        <p class="small text-muted mb-3">Comentario de {{ comentario.usuario.first_name }}: "{{ comentario.comentario }}"</p>
+                                        <label for="motivo-{{ comentario.id }}" class="form-label fw-bold">¿Por qué reportas esto?</label>
+                                        <textarea name="motivo" id="motivo-{{ comentario.id }}" rows="3" class="form-control" required></textarea>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="submit" class="btn btn-danger">Enviar Reporte</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-chat-square-text display-4 d-block mb-3"></i>
+                        <p>No hay comentarios aún. ¡Anímate a ser el primero!</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Formulario de nuevo comentario -->
+            {% if user.is_authenticated %}
+                {% if producto.vendedor != user %}
+                    <div class="card shadow-sm border-0 bg-light">
+                        <div class="card-body p-4">
+                            <h5 class="fw-bold mb-3">Deja tu valoración</h5>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label class="form-label text-muted">¿Qué te pareció el producto?</label>
+                                    <textarea name="comentario" class="form-control" rows="3" placeholder="Escribe tu experiencia..." required></textarea>
+                                </div>
+                                <div class="row align-items-end">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <label class="form-label text-muted">Puntuación</label>
+                                        <select name="valoracion" class="form-select" required>
+                                            <option value="" disabled selected>Selecciona una nota...</option>
+                                            <option value="5">5 - ¡Excelente!</option>
+                                            <option value="4">4 - Muy bueno</option>
+                                            <option value="3">3 - Bueno</option>
+                                            <option value="2">2 - Regular</option>
+                                            <option value="1">1 - Malo</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 text-md-end">
+                                        <button type="submit" class="btn btn-primary px-4 fw-bold">Enviar comentario</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+            
+            <div class="text-center mt-5">
+                <a href="{% url 'home' %}" class="btn btn-link text-decoration-none"><i class="bi bi-arrow-left"></i> Volver a la tienda</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Reporte Producto Principal -->
+<div class="modal fade" id="reportarModal-{{ producto.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger fw-bold"><i class="bi bi-flag-fill me-2"></i>Reportar Producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formReporte-{{ producto.id }}" action="{% url 'reportar_producto' producto.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <label class="form-label fw-bold">¿Por qué deseas reportar "{{ producto.nombre }}"?</label>
+                    <textarea name="motivo" class="form-control" rows="4" placeholder="Explica el problema con este anuncio..." required></textarea>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Enviar Reporte</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // AJAX para el reporte del producto principal
+    document.querySelectorAll('form[id^="formReporte-"]').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const url = form.action;
+            const csrfToken = form.querySelector('[name="csrfmiddlewaretoken"]').value;
+            const motivo = form.querySelector('[name="motivo"]').value.trim();
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: new URLSearchParams({ motivo })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Reporte enviado exitosamente."); 
+                    form.closest('.modal').querySelector('.btn-close').click(); 
+                    form.reset();
+                } else {
+                    alert(data.message || "Error al enviar el reporte."); 
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error inesperado.');
+            });
+        });
+    });
+</script>
+{% endblock %}
