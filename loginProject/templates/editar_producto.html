@@ -1,0 +1,164 @@
+{% extends "base/base.html" %}
+
+{% block titulo %}
+    Editar Producto: {{ producto.nombre }} | RexMarket
+{% endblock %}
+
+{% block contenido %}
+<style>
+    /* Estilos para embellecer los campos renderizados por Django automáticamente */
+    .django-form input[type="text"],
+    .django-form input[type="number"],
+    .django-form select,
+    .django-form textarea {
+        display: block;
+        width: 100%;
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+        color: #495057;
+        background-color: #f8f9fa;
+        border: 1px solid #ced4da;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .django-form input:focus,
+    .django-form select:focus,
+    .django-form textarea:focus {
+        background-color: #ffffff;
+        border-color: #ff8c00;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(255, 140, 0, 0.25);
+    }
+
+    /* Diseño especial para el input de tipo archivo (Imagen) */
+    .django-form input[type="file"] {
+        display: block;
+        width: 100%;
+        padding: 0.6rem;
+        font-size: 0.9rem;
+        border: 2px dashed #ff8c00;
+        border-radius: 0.5rem;
+        background-color: #fffaf0;
+        color: #495057;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        margin-top: 10px;
+    }
+    
+    .django-form input[type="file"]::file-selector-button {
+        background-color: #ff8c00;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.3rem;
+        margin-right: 1rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-weight: 600;
+        font-family: inherit;
+    }
+
+    .django-form input[type="file"]::file-selector-button:hover {
+        background-color: #e07b00;
+    }
+    
+    /* Estilizar los enlaces que Django genera para la imagen actual */
+    .django-form a {
+        color: #ff8c00;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .django-form a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7 col-md-9">
+            <div class="card shadow-lg border-0 rounded-4">
+                
+                <!-- Cabecera con gradiente naranja (Mantiene la identidad visual) -->
+                <div class="card-header text-center text-white py-4 rounded-top-4" style="background: linear-gradient(135deg, #ff8c00, #ff5722);">
+                    <h2 class="mb-1 fw-bold">Editar Producto</h2>
+                    <p class="mb-0 text-white-50 small">{{ producto.nombre }}</p>
+                </div>
+                
+                <div class="card-body p-4 p-md-5 bg-white django-form">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Nombre -->
+                        <div class="mb-4">
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label fw-bold text-secondary mb-2">Nombre del Producto</label>
+                            {{ form.nombre }}
+                            {% for error in form.nombre.errors %}
+                                <div class="text-danger small mt-1 fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mb-4">
+                            <label for="{{ form.descripcion.id_for_label }}" class="form-label fw-bold text-secondary mb-2">Descripción</label>
+                            {{ form.descripcion }}
+                            {% for error in form.descripcion.errors %}
+                                <div class="text-danger small mt-1 fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Precio -->
+                        <div class="mb-4">
+                            <label for="{{ form.precio.id_for_label }}" class="form-label fw-bold text-secondary mb-2">Precio</label>
+                            {{ form.precio }}
+                            {% for error in form.precio.errors %}
+                                <div class="text-danger small mt-1 fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Imagen -->
+                        <div class="mb-4 p-3 border rounded bg-light">
+                            <label for="{{ form.imagen.id_for_label }}" class="form-label fw-bold text-secondary mb-2">Imagen del Producto</label>
+                            {{ form.imagen }}
+                            {% for error in form.imagen.errors %}
+                                <div class="text-danger small mt-1 fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Categoría -->
+                        <div class="mb-4">
+                            <label for="{{ form.categoria.id_for_label }}" class="form-label fw-bold text-secondary mb-2">Categoría</label>
+                            {{ form.categoria }}
+                            {% for error in form.categoria.errors %}
+                                <div class="text-danger small mt-1 fw-semibold"><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <hr class="my-4 text-muted">
+                        
+                        <!-- Botones de Acción Agrupados -->
+                        <div class="d-flex flex-column flex-md-row gap-3">
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary fw-semibold w-100 rounded-3">Inicio</a>
+                            <a href="{% url 'detalle_producto' producto.id %}" class="btn btn-outline-secondary fw-semibold w-100 rounded-3">Cancelar</a>
+                            <button type="submit" class="btn btn-success fw-bold w-100 shadow-sm rounded-3">Actualizar Producto</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const inputPrecio = document.getElementById('id_precio');
+    if (inputPrecio) {
+        inputPrecio.addEventListener('input', function() {
+            let valor = this.value.replace(/[^\d,]/g, '');
+            valor = valor.replace(/,/g, '');
+            valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            this.value = valor;
+        });
+    }
+</script>
+{% endblock %}
