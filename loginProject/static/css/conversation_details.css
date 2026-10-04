@@ -1,0 +1,137 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;  /* Evitar el scroll en la página */
+}
+
+/* Contenedor principal */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #e5ddd5;
+    margin: 0;
+}
+
+/* Encabezado */
+.chat-header {
+    background-color: #25d366;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Lista de mensajes */
+.message-list {
+    list-style: none;
+    margin: 70px 0 100px; /* Espacio para el encabezado y formulario */
+    padding: 15px;
+    overflow-y: auto;  /* Permitir desplazamiento solo en el chat */
+    max-height: calc(100vh - 150px); /* Ajustar la altura del contenedor del chat */
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden; /* Evitar el scroll horizontal */
+}
+
+/* Mensajes */
+.message-item {
+    max-width: 60%;
+    margin: 10px;
+    padding: 12px 15px;
+    border-radius: 18px;
+    font-size: 0.95rem;
+    position: relative;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+/* Mensajes enviados */
+ul#message-list .message-item.sent {
+    background-color: #d1f7c4;
+    text-align: right;
+}
+
+ul#message-list .message-item.received {
+    background-color: #f1f1f1;
+    text-align: left;
+}
+.message-content {
+    margin: 0;
+}
+
+.message-timestamp {
+    font-size: 0.8rem;
+    color: #777;
+    text-align: right;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Formulario de mensajes */
+.message-form {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #ffffff;
+    padding: 10px 15px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#message-input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    padding: 10px 15px;
+    font-size: 1rem;
+    outline: none;
+    resize: none;
+    transition: border-color 0.3s ease;
+}
+
+#message-input:focus {
+    border-color: #25d366;
+}
+
+button[type="submit"] {
+    background-color: #25d366;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    margin-left: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #1eb954;
+}
+
+.btn-exit {
+    position: absolute;
+    top: 10px;
+    right: 50px;
+    background-color: #ff4d4d;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.btn-exit:hover {
+    background-color: #ff3333;
+}

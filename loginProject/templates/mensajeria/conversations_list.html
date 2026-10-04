@@ -1,0 +1,123 @@
+{% extends "base/base.html" %}
+
+{% block titulo %}
+    Mensajes | RexMarket
+{% endblock %}
+
+{% block contenido %}
+<style>
+    .chat-list-item {
+        transition: background-color 0.2s ease;
+        cursor: pointer;
+    }
+    .chat-list-item:hover {
+        background-color: #f8f9fa;
+    }
+    .z-3 {
+        z-index: 3;
+    }
+    .min-width-0 {
+        min-width: 0;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-bottom pt-4 pb-3">
+                    <h3 class="fw-bold mb-0"><i class="bi bi-chat-dots-fill text-primary me-2"></i>Mis Mensajes</h3>
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for contact, conversations in grouped_conversations.items %}
+                        
+                        <div class="list-group-item chat-list-item d-flex justify-content-between align-items-center p-3 border-bottom position-relative">
+                            
+                            <a href="{% url 'conversation_detail' conversations.0.id %}" class="d-flex align-items-center text-decoration-none text-dark w-100 stretched-link">
+                                <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold me-3 shadow-sm" style="width: 55px; height: 55px; font-size: 1.4rem;">
+                                    {{ contact.first_name|slice:":1"|upper }}{{ contact.last_name|slice:":1"|upper }}
+                                </div>
+                                
+                                <div class="flex-grow-1 min-width-0 pe-3">
+                                    <div class="d-flex justify-content-between align-items-baseline mb-1">
+                                        <!-- Nombre del contacto -->
+                                        <h6 class="mb-0 fw-bold text-truncate text-dark">{{ contact.first_name }} {{ contact.last_name }}</h6>
+                                        
+                                        <!-- Burbuja y Hora -->
+                                        <div class="d-flex align-items-center">
+                                            {% if conversations.0.unread_count > 0 %}
+                                                <span class="badge bg-danger rounded-pill me-2 shadow-sm">{{ conversations.0.unread_count }}</span>
+                                            {% endif %}
+                                            <small class="text-muted ms-1 text-nowrap">{{ conversations.0.messages.last.timestamp|date:"H:i" }}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Último mensaje (se pone negrita si está sin leer) -->
+                                    <p class="mb-0 text-truncate small {% if conversations.0.unread_count > 0 %}fw-bold text-dark{% else %}text-muted{% endif %}">
+                                        {% if conversations.0.messages.last.sender == request.user %}
+                                            <i class="bi bi-check2-all text-primary me-1"></i> 
+                                        {% endif %}
+                                        {{ conversations.0.messages.last.content|default:"Sin mensajes aún" }}
+                                    </p>
+                                </div>
+                            </a>
+                            
+                            <div class="position-relative z-3">
+                                <button class="btn btn-light btn-sm rounded-circle border" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                    <li>
+                                        <button class="dropdown-item text-danger fw-semibold" data-bs-toggle="modal" data-bs-target="#hideChatModal{{ conversations.0.id }}">
+                                            <i class="bi bi-trash3-fill me-2"></i> Eliminar chat
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {% empty %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-chat-square-dots display-1 text-muted opacity-50 mb-3 d-block"></i>
+                            <h5 class="text-muted fw-bold">Bandeja vacía</h5>
+                            <p class="text-muted small">No tienes conversaciones activas en este momento.</p>
+                            <a href="{% url 'home' %}" class="btn btn-outline-primary mt-2">Ir a la tienda</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+
+{% for contact, conversations in grouped_conversations.items %}
+<div class="modal fade" id="hideChatModal{{ conversations.0.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">Ocultar conversación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar la conversación con <strong>{{ contact.first_name }}</strong>?<br>
+                <span class="text-muted small mt-2 d-block">Nota: Esto solo limpiará tu bandeja, pero no borrará el historial real si vuelven a hablar.</span>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <form action="{% url 'ocultar_conversacion' conversations.0.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endblock %}

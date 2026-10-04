@@ -1,0 +1,368 @@
+{% extends "base/base.html" %}
+
+{% block titulo %}Chat con {{ other_participant.first_name }} | RexMarket{% endblock %}
+
+{% block contenido %}
+<style>
+    /* Estructura del Chat Box */
+    .chat-wrapper {
+        height: 75vh; /* Altura responsiva para PC */
+    }
+    
+    @media (max-width: 768px) {
+        .chat-wrapper {
+            height: calc(100vh - 130px); /* Ajuste perfecto para pantallas de celular */
+            margin-top: 0 !important;
+        }
+        .chat-card {
+            border-radius: 0 !important;
+            border: none !important;
+        }
+    }
+
+    /* Fondo clásico de mensajería */
+   .chat-box-area {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;           
+        overflow: hidden;      
+        background-color: #e5ddd5;
+        background-image: url('https://www.transparenttextures.com/patterns/cubes.png');
+    }
+    .chat-header-custom {
+        background-color: #ff8c00; /* Color naranja de RexMarket */
+        color: white;
+    }
+
+    /* Lista de mensajes */
+    .message-list {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Diseño de las burbujas */
+    .message-item {
+        max-width: 80%;
+        padding: 8px 14px;
+        border-radius: 12px;
+        position: relative;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        word-wrap: break-word;
+        display: inline-block;
+    }
+
+    /* El secreto para que no se estiren de lado a lado */
+    .message-item.sent {
+        align-self: flex-end;
+        background-color: #dcf8c6; /* Verde clásico de WhatsApp */
+        border-top-right-radius: 0;
+    }
+
+    .message-item.received {
+        align-self: flex-start;
+        background-color: #ffffff;
+        border-top-left-radius: 0;
+    }
+
+    .message-sender {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #ff8c00;
+        margin-bottom: 3px;
+        display: block;
+    }
+
+    .message-content {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #303030;
+    }
+
+    .message-timestamp {
+        font-size: 0.7rem;
+        color: #888;
+        float: right;
+        margin-left: 12px;
+        margin-top: 6px;
+    }
+
+    /* Área del input */
+    .chat-input-area {
+        background-color: #f0f0f0;
+        padding: 12px 15px;
+    }
+
+    .chat-input-area input {
+        border-radius: 25px;
+        padding-left: 20px;
+    }
+
+    .btn-send {
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #ff8c00;
+        color: white;
+        border: none;
+        transition: transform 0.2s ease;
+    }
+
+    .btn-send:hover {
+        transform: scale(1.05);
+        background-color: #e07b00;
+    }
+</style>
+
+<div class="container py-4 chat-wrapper">
+    <div class="row justify-content-center h-100">
+        <div class="col-lg-8 col-md-10 h-100">
+            
+<div class="card shadow-lg border-0 h-100 chat-card rounded-4 overflow-hidden d-flex flex-column">                
+                <!-- Encabezado del Chat -->
+                <div class="card-header chat-header-custom d-flex justify-content-between align-items-center p-3 border-0">
+                    <div class="d-flex align-items-center">
+                        <!-- Botón volver -->
+                        <a href="{% url 'conversations_list' %}" class="text-white me-3 text-decoration-none">
+                            <i class="bi bi-arrow-left fs-4"></i>
+                        </a>
+                        <!-- Avatar -->
+                        <div class="bg-white text-primary rounded-circle d-flex justify-content-center align-items-center fw-bold me-3 shadow-sm" style="width: 45px; height: 45px; font-size: 1.2rem;">
+                            {{ other_participant.first_name|slice:":1"|upper }}{{ other_participant.last_name|slice:":1"|upper }}
+                        </div>
+                        <!-- Info -->
+                        <div class="lh-sm">
+                            <h5 class="mb-0 fw-bold">{{ other_participant.first_name }} {{ other_participant.last_name }}</h5>
+                            <small id="user-status" class="text-white-50">Desconectado</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Cuerpo del Chat -->
+                <div class="chat-box-area">
+                    <ul id="message-list" class="message-list list-unstyled mb-0">
+                        <!-- Los mensajes se cargarán aquí por JS -->
+                    </ul>
+                    
+                    <!-- Formulario de Envío -->
+                    <div class="chat-input-area border-top">
+                        <form id="message-form" class="d-flex align-items-center gap-2" method="POST">
+                            {% csrf_token %}
+                            <input type="text" id="message-input" name="message" class="form-control border-0 shadow-sm py-2" placeholder="Escribe un mensaje..." required autocomplete="off">
+                            <button type="submit" class="btn-send shadow-sm">
+                                <i class="bi bi-send-fill fs-5"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Reportar Mensaje -->
+<div class="modal fade" id="reportMessageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-flag-fill me-2"></i>Reportar Mensaje</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">Si este mensaje incumple las normas de la comunidad, repórtalo para que un administrador lo revise.</p>
+                <input type="hidden" id="report-message-id">
+                <textarea id="report-reason" class="form-control" rows="3" placeholder="Escribe el motivo del reporte..." required></textarea>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="submitMessageReport()">Enviar Reporte</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const conversationId = {{ conversation.id }};
+    const messageList = document.getElementById('message-list');
+    const messageInput = document.getElementById('message-input');
+    const userId = {{ request.user.id }}; 
+
+    function scrollToBottom() {
+        messageList.scrollTop = messageList.scrollHeight;
+    }
+
+    function loadMessages() {
+        // cache: 'no-store' asegura que siempre veamos los ticks azules actualizados
+        fetch(`/conversations/${conversationId}/messages/`, { cache: 'no-store' })
+            .then(response => response.json())
+            .then(data => {
+                messageList.innerHTML = ''; 
+                
+                data.messages.forEach(message => {
+                    const li = document.createElement('li');
+                    li.classList.add('message-item');
+
+                    if (message.sender.id === userId) {
+                        // --- Ticks de estado (Enviado / Visto) ---
+                        const tickHtml = message.is_read 
+                            ? '<i class="bi bi-check2-all text-primary ms-1"></i>'    
+                            : '<i class="bi bi-check2-all text-secondary ms-1"></i>'; 
+
+                        li.classList.add('sent');
+                        li.innerHTML = `
+                            <p class="message-content">${message.content}</p>
+                            <span class="message-timestamp">${message.timestamp} ${tickHtml}</span>
+                        `;
+                    } else {
+                        // --- Banderita de Reporte en mensajes recibidos ---
+                        li.classList.add('received');
+                        li.innerHTML = `
+                            <span class="message-sender">${message.sender.first_name}</span>
+                            <p class="message-content">${message.content}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <span class="message-timestamp m-0">${message.timestamp}</span>
+                                <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-3 text-decoration-none" onclick="openReportModal(${message.id})" title="Reportar mensaje">
+                                    <i class="bi bi-flag"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
+                    messageList.appendChild(li);
+                });
+                scrollToBottom();
+            })
+            .catch(error => console.error('Error al cargar mensajes:', error));
+    }
+    
+    loadMessages();
+
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const chatSocket = new WebSocket(
+        wsScheme + '://' + window.location.host + '/ws/chat/' + conversationId + '/'
+    );
+
+    chatSocket.onopen = function(e) {
+        chatSocket.send(JSON.stringify({'action': 'mark_as_read'}));
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('El WebSocket se cerró inesperadamente');
+    };
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+
+        if (data.type === 'status') {
+            if (data.user_id !== userId) {
+                if (data.status === 'ping') {
+                    chatSocket.send(JSON.stringify({'action': 'reply_status'}));
+                    return;
+                }
+                const statusElement = document.getElementById('user-status');
+                if (statusElement) {
+                    statusElement.textContent = data.status;
+                    if (data.status === 'En línea') {
+                        statusElement.classList.replace('text-white-50', 'text-white');
+                        statusElement.classList.add('fw-bold');
+                        if (data.is_new) {
+                            chatSocket.send(JSON.stringify({'action': 'reply_status'}));
+                        }
+                    } else {
+                        statusElement.classList.replace('text-white', 'text-white-50');
+                        statusElement.classList.remove('fw-bold');
+                        setTimeout(() => {
+                            if (chatSocket.readyState === WebSocket.OPEN) {
+                                chatSocket.send(JSON.stringify({'action': 'ping'}));
+                            }
+                        }, 1500);
+                    }
+                }
+            }
+        } 
+        else if (data.type === 'messages_read') {
+            if (data.user_id !== userId) {
+                setTimeout(() => {
+                    loadMessages();
+                }, 500);
+            }
+        }
+        else {
+            loadMessages();
+            setTimeout(() => {
+                if (chatSocket.readyState === WebSocket.OPEN) {
+                    chatSocket.send(JSON.stringify({'action': 'mark_as_read'}));
+                }
+            }, 1000);
+        }
+    };
+
+    document.getElementById('message-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const messageContent = messageInput.value.trim();
+
+        if (messageContent) {
+            fetch(`/conversations/${conversationId}/messages/send/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+                body: JSON.stringify({ content: messageContent })
+            })
+            .then(() => {
+                messageInput.value = ''; 
+                chatSocket.send(JSON.stringify({
+                    'message': 'actualizar_chat'
+                }));
+            })
+            .catch(error => console.error('Error al enviar:', error));
+        }
+    });
+
+    // --- FUNCIONES DEL MODAL DE REPORTE ---
+    function openReportModal(messageId) {
+        document.getElementById('report-message-id').value = messageId;
+        document.getElementById('report-reason').value = '';
+        const modal = new bootstrap.Modal(document.getElementById('reportMessageModal'));
+        modal.show();
+    }
+
+    function submitMessageReport() {
+        const messageId = document.getElementById('report-message-id').value;
+        const reason = document.getElementById('report-reason').value.trim();
+
+        if (!reason) {
+            alert('Por favor, especifica un motivo para el reporte.');
+            return;
+        }
+
+        fetch(`/mensajes/reportar/${messageId}/`, { 
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            },
+            body: JSON.stringify({ reason: reason })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.status || 'Reporte enviado exitosamente.');
+            const modalEl = document.getElementById('reportMessageModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+        })
+        .catch(error => {
+            console.error('Error al reportar:', error);
+            alert('Hubo un error al enviar el reporte.');
+        });
+    }
+</script>
+{% endblock %}
