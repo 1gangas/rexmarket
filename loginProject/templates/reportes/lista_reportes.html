@@ -1,0 +1,129 @@
+{% extends 'base/base.html' %}
+
+
+{% block titulo %}
+Lista Reportes Producto
+{% endblock %}
+
+
+{% block contenido %}
+
+<!-- CSS de DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- JS de DataTables -->
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    h2 {
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 40px;
+        font-family: 'Arial', sans-serif;
+        font-weight: 600;
+    }
+</style>
+
+<h2>Reportes de Productos</h2>
+
+<div class="container">
+    <div class="card-body">
+        <table id="reportesTable" class="table table-hover table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Creador del Producto</th>
+                    <th>Reportado por</th>
+                    <th>Motivo</th>
+                    <th>Fecha de Creación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reporte in reportes %}
+                <tr>
+                    <td>{{ reporte.id }}</td>
+                    <td>{{ reporte.producto.nombre }}</td>
+                    <td>
+                        {{ reporte.producto.vendedor.first_name }} 
+                        ({{ reporte.producto.vendedor.username }})
+                    </td>
+                    <td>
+                        {{ reporte.usuario.first_name }} 
+                        ({{ reporte.usuario.username }})
+                    </td>
+                    <td>{{ reporte.motivo }}</td>
+                    <td>{{ reporte.fecha_reporte|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'detalle_producto' reporte.producto.id %}" class="btn btn-info btn-sm">
+                            Ver Producto
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteReporteModal{{ reporte.id }}">
+                            Eliminar
+                        </button>
+                        
+                        <!-- Modal de Confirmación para Eliminar Reporte -->
+                        <div class="modal fade" id="deleteReporteModal{{ reporte.id }}" tabindex="-1" aria-labelledby="deleteReporteModalLabel{{ reporte.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Eliminar Reporte</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        ¿Estás seguro de que deseas eliminar este reporte del producto <strong>{{ reporte.producto.nombre }}</strong>?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <form method="post" action="{% url 'eliminar_reporte' reporte.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Fin Modal -->
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#reportesTable').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ entradas",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                "infoEmpty": "Mostrando 0 a 0 de 0 entradas",
+                "infoFiltered": "(filtrado de _MAX_ entradas totales)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                },
+            },
+        });
+    });
+</script>
+
+<div class="footer-links">
+    <a href="{% url 'home' %}" class="btn btn-secondary mt-4">Página Principal</a>
+</div>
+
+{% endblock %}

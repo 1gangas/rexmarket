@@ -1,0 +1,120 @@
+{% extends 'base/base.html' %}
+
+{% block titulo %}
+    Reportes de Comentarios
+{% endblock %}
+
+
+{% block contenido %}
+
+<!-- CSS de DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- JS de DataTables -->
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+    h2 {
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 40px;
+        font-family: 'Arial', sans-serif;
+        font-weight: 600;
+    }
+</style>
+
+<h2>Reportes de Comentarios</h2>
+
+<div class="container">
+    <div class="card-body">
+        <table id="comentariosTable" class="table table-hover table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Producto</th>
+                    <th>Comentario</th>
+                    <th>Motivo</th>
+                    <th>Usuario Reportador</th>
+                    <th>Fecha de Reporte</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reporte in reportes_comentarios %}
+                <tr>
+                    <td>{{ reporte.id }}</td>
+                    <td>
+                        <a href="{% url 'detalle_producto' producto_id=reporte.comentario.producto.id %}">
+                            {{ reporte.comentario.producto.nombre }}
+                        </a>
+                    </td>
+                    <td>{{ reporte.comentario.comentario }}</td>
+                    <td>{{ reporte.motivo }}</td>
+                    <td>{{ reporte.usuario.first_name }} ({{ reporte.usuario.username }})</td>
+                    <td>{{ reporte.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if request.user.is_staff %}
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ reporte.id }}">
+                            Eliminar
+                        </button>
+                        
+                        <!-- Modal de confirmación de eliminación -->
+                        <div class="modal fade" id="deleteModal{{ reporte.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ reporte.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Confirmar Eliminación</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        ¿Estás seguro de que deseas eliminar el reporte sobre el comentario de "<strong>{{ reporte.comentario.producto.nombre }}</strong>"?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                        <form method="post" action="{% url 'eliminar_reporte_comentario' reporte.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#comentariosTable').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ entradas",
+                "zeroRecords": "No se encontraron resultados",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_ entradas",
+                "infoEmpty": "Mostrando 0 a 0 de 0 entradas",
+                "infoFiltered": "(filtrado de _MAX_ entradas totales)",
+                "search": "Buscar:",
+                "paginate": {
+                    "first": "Primero",
+                    "last": "Último",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                },
+            },
+        });
+    });
+</script>
+
+{% endblock %}

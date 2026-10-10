@@ -1,0 +1,201 @@
+{% extends 'base/base.html' %}
+
+{% block titulo %}
+    Reportes de Mensajes | Administración
+{% endblock %}
+
+{% block contenido %}
+
+<!-- CSS de DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
+
+<style>
+    body { background-color: #f8f9fa; }
+    h2 { text-align: center; margin: 30px 0; font-weight: 600; color: #2c3e50; }
+    .mensaje-celda { max-width: 250px; word-wrap: break-word; white-space: pre-wrap; font-style: italic; }
+</style>
+
+<h2>Gestión de Reportes (Mensajes)</h2>
+
+<div class="container-fluid px-4 mb-5">
+    
+    <!-- TABLA 1: REPORTES PENDIENTES -->
+    <h4 class="text-danger fw-bold mb-3"><i class="bi bi-exclamation-triangle-fill me-2"></i>Reportes Pendientes</h4>
+    <div class="card shadow-sm border-0 mb-5 border-top border-danger border-3">
+        <div class="card-body">
+            <table class="table table-hover table-striped table-bordered align-middle dataTable-reportes">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Denunciante</th>
+                        <th>Reportado</th>
+                        <th>Mensaje Reportado</th>
+                        <th>Motivo</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reporte in reportes_pendientes %}
+                    <tr>
+                        <td>{{ reporte.id }}</td>
+                        <td>
+                            <ul class="list-unstyled mb-0 small">
+                                <li><strong>Nombre:</strong> {{ reporte.reporter.first_name }} {{ reporte.reporter.last_name }}</li>
+                                <li><strong>RUT:</strong> {{ reporte.reporter.username|default:"No registrado" }}</li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="list-unstyled mb-0 small">
+                                <li><strong>Nombre:</strong> {{ reporte.message.sender.first_name }} {{ reporte.message.sender.last_name }}</li>
+                                <li><strong>RUT:</strong> {{ reporte.message.sender.username|default:"No registrado" }}</li>
+                            </ul>
+                        </td>
+                        <td class="mensaje-celda"><div class="p-2 bg-light border rounded">"{{ reporte.message.content }}"</div></td>
+                        <td>{{ reporte.reason }}</td>
+                        <td>{{ reporte.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <div class="d-flex gap-2 flex-column">
+                                <a href="{% url 'conversation_detail' reporte.message.conversation.id %}" class="btn btn-primary btn-sm"><i class="bi bi-chat-text"></i> Ver Chat</a>
+                                
+                                <form method="post" action="{% url 'resolver_reporte_mensaje' reporte.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm w-100"><i class="bi bi-check-circle"></i> Resolver</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TABLA 2: REPORTES RESUELTOS -->
+    <h4 class="text-success fw-bold mb-3"><i class="bi bi-check-circle-fill me-2"></i>Historial de Reportes Resueltos</h4>
+    <div class="card shadow-sm border-0 border-top border-success border-3">
+        <div class="card-body">
+            <table class="table table-hover table-striped table-bordered align-middle dataTable-reportes">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Denunciante</th>
+                        <th>Reportado</th>
+                        <th>Mensaje Reportado</th>
+                        <th>Motivo</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reporte in reportes_resueltos %}
+                    <tr>
+                        <td>{{ reporte.id }}</td>
+                        <td>
+                            <ul class="list-unstyled mb-0 small text-muted">
+                                <li>{{ reporte.reporter.first_name }} {{ reporte.reporter.last_name }}</li>
+                                <li>{{ reporte.reporter.username|default:"No registrado" }}</li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul class="list-unstyled mb-0 small text-muted">
+                                <li>{{ reporte.message.sender.first_name }} {{ reporte.message.sender.last_name }}</li>
+                                <li>{{ reporte.message.sender.username|default:"No registrado" }}</li>
+                            </ul>
+                        </td>
+                        <td class="mensaje-celda text-muted"><div class="p-2 bg-light border rounded opacity-75">"{{ reporte.message.content }}"</div></td>
+                        <td class="text-muted">{{ reporte.reason }}</td>
+                        <td class="text-muted">{{ reporte.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <div class="d-flex gap-2 flex-column">
+                                <a href="{% url 'conversation_detail' reporte.message.conversation.id %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-chat-text"></i> Chat</a>
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ reporte.id }}"><i class="bi bi-trash"></i> Eliminar</button>
+                            </div>
+
+                            <!-- Modal de Confirmación -->
+                            <div class="modal fade" id="deleteModal{{ reporte.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title text-danger">Eliminar Registro</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">¿Borrar definitivamente este reporte resuelto del sistema?</div>
+                                        <div class="modal-footer border-0">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <form method="post" action="{% url 'eliminar_reporte_mensaje' reporte.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. Encapsulamos la inicialización de DataTables en una función
+    function inicializarTablas() {
+        $('.dataTable-reportes').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_",
+                "zeroRecords": "No se encontraron resultados",
+                "emptyTable": "No hay reportes en esta sección.",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_",
+                "infoEmpty": "Mostrando 0 a 0 de 0",
+                "search": "Buscar:",
+                "paginate": { "first": "Primero", "last": "Último", "next": "Siguiente", "previous": "Anterior" }
+            },
+            "order": [[ 5, "desc" ]],
+            "destroy": true // IMPORTANTE: Permite destruir y recrear la tabla sin errores de inicialización
+        });
+    }
+
+    $(document).ready(function () {
+        // 2. Arrancar DataTables al cargar la página normalmente
+        inicializarTablas();
+
+        // 3. Short-Polling: Buscar reportes nuevos en segundo plano cada 10 segundos
+        setInterval(function() {
+            // Usamos Fetch para traer la misma página de forma invisible
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    // Parseamos el HTML que nos devuelve el servidor
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    // Extraemos los nuevos <tbody> de las dos tablas que vienen en el HTML nuevo
+                    const tablasNuevas = doc.querySelectorAll('.dataTable-reportes tbody');
+                    const tablasActuales = document.querySelectorAll('.dataTable-reportes tbody');
+                    
+                    // Verificamos que tengamos exactamente 2 tablas (Pendientes y Resueltos)
+                    if(tablasNuevas.length === 2 && tablasActuales.length === 2) {
+                        
+                        // A. Destruimos el diseño actual de DataTables para no bugearlo al meter datos nuevos
+                        $('.dataTable-reportes').DataTable().destroy();
+                        
+                        // B. Inyectamos los datos frescos directamente en el HTML
+                        tablasActuales[0].innerHTML = tablasNuevas[0].innerHTML; // Tabla Pendientes
+                        tablasActuales[1].innerHTML = tablasNuevas[1].innerHTML; // Tabla Resueltos
+                        
+                        // C. Volvemos a armar DataTables para que el buscador y la paginación funcionen de nuevo
+                        inicializarTablas();
+                    }
+                })
+                .catch(error => console.error('Error de red al actualizar reportes:', error));
+        }, 10000); // 10000 milisegundos = 10 segundos. Puedes bajarlo a 5000 si prefieres.
+    });
+</script>
+
+{% endblock %}

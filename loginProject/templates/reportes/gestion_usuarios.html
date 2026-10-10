@@ -1,0 +1,131 @@
+{% extends 'base/base.html' %}
+
+{% block titulo %}
+    Gestión de Usuarios | Administración
+{% endblock %}
+
+{% block contenido %}
+<!-- CSS y JS de DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js"></script>
+
+<style>
+    body { background-color: #f8f9fa; }
+    h2 { text-align: center; margin: 30px 0; font-weight: 600; color: #2c3e50; }
+</style>
+
+<h2>Gestión Central de Usuarios</h2>
+
+<div class="container-fluid px-4 mb-5">
+    
+    <!-- TABLA 1: USUARIOS ACTIVOS -->
+    <h4 class="text-primary fw-bold mb-3"><i class="bi bi-people-fill me-2"></i>Usuarios Activos en Plataforma</h4>
+    <div class="card shadow-sm border-0 mb-5 border-top border-primary border-3">
+        <div class="card-body">
+            <table class="table table-hover table-striped table-bordered align-middle dataTable-usuarios">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Usuario / RUT</th>
+                        <th>Email</th>
+                        <th>Fecha Registro</th>
+                        <th>Acciones (Seguridad)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios_activos %}
+                    <tr>
+                        <td>{{ usuario.id }}</td>
+                        <td class="fw-bold">{{ usuario.first_name }} {{ usuario.last_name }}</td>
+                        <td>{{ usuario.username }}</td>
+                        <td>{{ usuario.email }}</td>
+                        <td>{{ usuario.date_joined|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <!-- Botón Banear -->
+                                <form method="post" action="{% url 'cambiar_estado_usuario' usuario.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('¿Suspender (Banear) a este usuario? No podrá iniciar sesión.');">
+                                        <i class="bi bi-slash-circle"></i> Banear
+                                    </button>
+                                </form>
+                                <!-- Botón Eliminar -->
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ usuario.id }}">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% include 'reportes/modal_eliminar_usuario.html' with user_obj=usuario %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TABLA 2: USUARIOS BANEADOS -->
+    <h4 class="text-danger fw-bold mb-3"><i class="bi bi-person-x-fill me-2"></i>Cuentas Suspendidas / Baneadas</h4>
+    <div class="card shadow-sm border-0 border-top border-danger border-3">
+        <div class="card-body">
+            <table class="table table-hover table-striped table-bordered align-middle dataTable-usuarios">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre Completo</th>
+                        <th>Usuario / RUT</th>
+                        <th>Email</th>
+                        <th>Fecha Registro</th>
+                        <th>Acciones de Recuperación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios_baneados %}
+                    <tr>
+                        <td class="text-muted">{{ usuario.id }}</td>
+                        <td class="text-muted fw-bold text-decoration-line-through">{{ usuario.first_name }} {{ usuario.last_name }}</td>
+                        <td class="text-muted">{{ usuario.username }}</td>
+                        <td class="text-muted">{{ usuario.email }}</td>
+                        <td class="text-muted">{{ usuario.date_joined|date:"d/m/Y" }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <!-- Botón Desbanear -->
+                                <form method="post" action="{% url 'cambiar_estado_usuario' usuario.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('¿Restaurar el acceso a este usuario?');">
+                                        <i class="bi bi-check-circle"></i> Desbanear
+                                    </button>
+                                </form>
+                                <!-- Botón Eliminar -->
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ usuario.id }}">
+                                    <i class="bi bi-trash"></i> Destruir Registro
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% include 'reportes/modal_eliminar_usuario.html' with user_obj=usuario %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.dataTable-usuarios').DataTable({
+            "language": {
+                "lengthMenu": "Mostrar _MENU_ usuarios",
+                "zeroRecords": "No se encontraron usuarios",
+                "emptyTable": "No hay registros en esta tabla.",
+                "info": "Mostrando _START_ a _END_ de _TOTAL_",
+                "search": "Buscar:",
+                "paginate": { "first": "Primero", "last": "Último", "next": "Siguiente", "previous": "Anterior" }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

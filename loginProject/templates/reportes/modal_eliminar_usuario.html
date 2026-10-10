@@ -1,0 +1,21 @@
+<div class="modal fade" id="deleteUserModal{{ user_obj.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-danger text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Eliminación Crítica</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-dark">
+                ¿Estás absolutamente seguro de querer eliminar a <strong>{{ user_obj.first_name }} {{ user_obj.last_name }}</strong>?<br><br>
+                <span class="text-danger small fw-bold">Esta acción destruirá todos sus productos, mensajes y comentarios de la base de datos irreversiblemente.</span>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="post" action="{% url 'eliminar_usuario_definitivo' user_obj.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Sí, destruir cuenta</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
